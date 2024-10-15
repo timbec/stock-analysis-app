@@ -1,0 +1,23 @@
+# Django-specific
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+
+# Environment variables
+.env
+
+# VSCode settings (if using)
+.vscode/
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+
+# Django static files
+/static/
+
+# Logs and runtime data
+*.log
+
+# Virtual environment
+venv/
