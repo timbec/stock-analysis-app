@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ stock.name }} Details</title>
+
+</head>
+
+<body>
+    <h1>{{ stock.name }} ({{ stock.symbol }})</h1>
+    <p>Average Close Price: {{ avg_close_price }}</p>
+    <!-- Add the Delete Button -->
+    <form action="{% url 'delete_stock' symbol=stock.symbol %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">Delete {{ stock.name }}</button>
+    </form>
+    <div class="stock__header">
+        <section class="stock__value--list">
+            <li>Shares: {{ portfolio_entry.shares }}</li>
+            <li>Price: ${{ portfolio_entry.price }}</li>
+            <li>Average Cost: ${{ portfolio_entry.avg_cost }}</li>
+            <li>Total Return: ${{ portfolio_entry.total_return }}</li>
+            <li>Equity: ${{ portfolio_entry.equity }}</li>
+            <li>Gain Since Invested: ${{ portfolio_entry.gain_since_invested }}</li>
+            <li>Allocation: {{ portfolio_entry.allocation }}%</li>
+        </section>
+        <a href="{% url 'stock_list' %}">Back to stock list</a>
+        <section class="stock__value--chart">
+            <h2>{{ stock.name }} ({{ stock.symbol }})</h2>
+
+            <!-- Chart Container -->
+            <div id="chart"></div>
+
+            <!-- Load Plotly.js -->
+            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+            <script>
+                var stockData = {{ prices_json | safe }};  // Load stock price data from Django
+                console.log(stockData);
+                var dates = stockData.map(d => d.date);
+                var closingPrices = stockData.map(d => d.close_price);
+
+                var trace = {
+                    x: dates,
+                    y: closingPrices,
+                    mode: 'lines',
+                    type: 'scatter',
+                    name: 'Closing Price'
+                };
+
+                var layout = {
+                    title: '{{ stock.symbol }} Closing Price',
+                    xaxis: { title: 'Date' },
+                    yaxis: { title: 'Price (USD)' }
+                };
+
+                Plotly.newPlot('chart', [trace], layout);
+            </script>
+        </section>
+    </div>
+
+    <section class="stock__value--tracker">
+        <table border="1">
+            <tr>
+                <th>Date</th>
+                <th>Open</th>
+                <th>Close</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Volume</th>
+            </tr>
+            {% for price in prices %}
+
+            <tr>
+
+                <td>{{ price.date }}</td>
+                <td>{{ price.open_price }}</td>
+                <td>{{ price.close_price }}</td>
+                <td>{{ price.high }}</td>
+                <td>{{ price.low }}</td>
+                <td>{{ price.volume }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </section>
+
+    <a href="{% url 'stock_list' %}">Back to stock list</a>
+</body>
+
+</html>

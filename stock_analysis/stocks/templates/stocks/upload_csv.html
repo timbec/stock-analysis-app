@@ -1,0 +1,10 @@
+<!-- stocks/templates/stocks/upload_csv.html -->
+<h2>Upload CSV File</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+</form>
+
+<a href="{% url 'stock_list' %}">Back to Stock List</a>
