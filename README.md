@@ -13,9 +13,10 @@ This is also an experiment in building with Chat GPT as a pair programmer, using
 
 Next steps will be: 
 1) generate vizualizations
+    - have set up basic line chart using Chart.js and Plotly. Candlestick chart will be next.
 2) run technical analysis
 3) generate predictions using machine learning
 4) create RESTful APIs to bring in real-time data. 
-5) make the interface more user friendly, possibly using Typescript. 
+5) make the interface more user friendly, possibly using Typescript with ES6 Javascript (or React if I have to)
 
 Because I'm only using this app for myself, for the time being it will probably remain local, though perhaps I'll eventually host it on the web, and put it behind a wall. 
