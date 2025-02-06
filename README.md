@@ -1,4 +1,4 @@
-This was inspired by a blog post in Jet Brains: Django Project Ideas. I hadn't used Django in a couple of years and I wanted to build with it again because I like the framework and Python generally. This was the description: 
+This was inspired by a blog post in Jet Brains: Django Project Ideas. I hadn't used Django in any meaningful way for a couple of years and I wanted to build with it again because I like the framework and Python generally. This was the description: 
 
 >Stock exchange analysis
 Build a stock market analysis platform using Django, a project that combines data science, machine learning, and the Django REST framework. It also offers more practical experience in handling lots of real-time data. 
@@ -7,7 +7,7 @@ Build a stock market analysis platform using Django, a project that combines dat
 
 From: https://blog.jetbrains.com/pycharm/2024/09/django-project-ideas/#stock-exchange-analysis
 
-Thus far, I'm able to read data from a CSV, as well as bring in data from yfinance. The data is stored in a PostGreSQL database and display in a list, then data for each stock displayed on its own page. 
+Thus far, I'm able to read data from a CSV, as well as bring in data from yfinance. The data is stored in a PostGreSQL database and displayed in a list, then data for each stock displayed on its own page. 
 
 This is also an experiment in building with Chat GPT as a pair programmer, using the Django custom GPT. So far I've found it very helpful. 
 
