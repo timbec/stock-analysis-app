@@ -1,4 +1,7 @@
 <!-- stocks/templates/stocks/upload_csv.html -->
+{% extends "base.html" %}
+
+{% block content %}
 <h2>Upload CSV File</h2>
 
 <form method="post" enctype="multipart/form-data">
@@ -8,3 +11,5 @@
 </form>
 
 <a href="{% url 'stock_list' %}">Back to Stock List</a>
+
+{% endblock %}

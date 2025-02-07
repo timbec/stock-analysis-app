@@ -1,7 +1,11 @@
 <!-- stocks/templates/stocks/add_stock.html -->
+{% extends "base.html" %}
+
+{% block content %}
 <h2>Add Stock</h2>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Add Stock</button>
 </form>
+{% endblock %}

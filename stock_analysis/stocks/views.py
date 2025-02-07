@@ -1,13 +1,17 @@
 # stocks/views.py
+import pandas as pd
+import pandas_ta as ta
 from django.shortcuts import render, redirect, get_object_or_404
 from .forms import CSVUploadForm
 from .models import StockSymbol, StockPrice, PortfolioEntry
 from django.db.models import Avg
 from django.http import JsonResponse
+from django.shortcuts import render, get_object_or_404
 
 from django.core.serializers.json import DjangoJSONEncoder
 import json
 
+from .models import StockSymbol, StockPrice
 from .forms import StockSymbolForm
 from .utils import fetch_stock_data, fetch_multiple_stock_data
 
@@ -35,18 +39,46 @@ def stock_detail(request, symbol):
     # Query stock prices for table rendering
     prices = stock.prices.order_by('-date')  # Keep this for templates
 
+    # Convert to DataFrame for TA calculations
+    df = pd.DataFrame(list(prices))
+
+        # Ensure data exists before calculations
+    if not df.empty:
+        df['date'] = pd.to_datetime(df['date'])  # Convert date to datetime
+
+        # 🟢 Add Moving Averages (SMA & EMA)
+        df['SMA_20'] = ta.sma(df['close_price'], length=20)  # 20-day SMA
+        df['EMA_10'] = ta.ema(df['close_price'], length=10)  # 10-day EMA
+
+        # 🔵 Add RSI (Relative Strength Index)
+        df['RSI_14'] = ta.rsi(df['close_price'], length=14)  # 14-day RSI
+
+    # Convert data to JSON format for Plotly.js
+    technical_data = df.to_json(orient='records', date_format='iso')
+
+    # Query stock prices for candlestick chart
+    oldest_prices = stock.prices.order_by('date').values('date', 'open_price', 'high', 'low', 'close_price')  # Keep this for templates
+
     # Compute average close price
     avg_close_price = prices.aggregate(Avg('close_price'))['close_price__avg']
 
     # Convert prices to JSON for Plotly
     prices_json = json.dumps(list(prices.values('date', 'close_price')), cls=DjangoJSONEncoder)
 
+    # Convert data to JSON format for JavaScript
+    candlestick_data = json.dumps(
+        list(oldest_prices.values('date', 'open_price', 'high', 'low', 'close_price')),
+        cls=DjangoJSONEncoder
+    )
+
     return render(request, 'stocks/stock_detail.html', {
         'stock': stock,
         'portfolio_entry': portfolio_entry,
         'prices': prices,  # Keep QuerySet for tables
         'avg_close_price': avg_close_price,
-        'prices_json': prices_json  # Pass JSON for visualization
+        'prices_json': prices_json,  # Pass JSON for visualization
+        'technical_data': technical_data,  # Pass JSON data for visualization
+        'candlestick_data': candlestick_data  # Pass JSON data for Plotly.js
     })
 
 

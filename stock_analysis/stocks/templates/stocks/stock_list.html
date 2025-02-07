@@ -1,29 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock List</title>
-</head>
+{% block content %}
+<h1>Available Stocks</h1>
+<ul>
+    {% for symbol in symbols %}
 
-<body>
-    <h1>Available Stocks</h1>
-    <ul>
-        {% for symbol in symbols %}
+    <li>
+        <h3>{{ symbol.name }}</h3>
+        <a href="{% url 'stock_detail' symbol=symbol.symbol %}">{{ symbol.symbol }}</a>
 
-        <li>
-            <h3>{{ symbol.name }}</h3>
-            <a href="{% url 'stock_detail' symbol=symbol.symbol %}">{{ symbol.symbol }}</a>
+    </li>
+    {% empty %}
+    <li>No stocks available.</li>
+    {% endfor %}
+</ul>
 
-        </li>
-        {% empty %}
-        <li>No stocks available.</li>
-        {% endfor %}
-    </ul>
+<a href="{% url 'add_stock' %}">Add New Stock</a>
+<a href="{% url 'upload_csv' %}">Upload CSV</a>
 
-    <a href="{% url 'add_stock' %}">Add New Stock</a>
-    <a href="{% url 'upload_csv' %}">Upload CSV</a>
-</body>
-
-</html>
+{% endblock %}

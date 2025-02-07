@@ -1,92 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ stock.name }} Details</title>
-
-</head>
-
-<body>
-    <h1>{{ stock.name }} ({{ stock.symbol }})</h1>
-    <p>Average Close Price: {{ avg_close_price }}</p>
-    <!-- Add the Delete Button -->
-    <form action="{% url 'delete_stock' symbol=stock.symbol %}" method="POST">
-        {% csrf_token %}
-        <button type="submit">Delete {{ stock.name }}</button>
-    </form>
-    <div class="stock__header">
-        <section class="stock__value--list">
-            <li>Shares: {{ portfolio_entry.shares }}</li>
-            <li>Price: ${{ portfolio_entry.price }}</li>
-            <li>Average Cost: ${{ portfolio_entry.avg_cost }}</li>
-            <li>Total Return: ${{ portfolio_entry.total_return }}</li>
-            <li>Equity: ${{ portfolio_entry.equity }}</li>
-            <li>Gain Since Invested: ${{ portfolio_entry.gain_since_invested }}</li>
-            <li>Allocation: {{ portfolio_entry.allocation }}%</li>
-        </section>
-        <a href="{% url 'stock_list' %}">Back to stock list</a>
-        <section class="stock__value--chart">
-            <h2>{{ stock.name }} ({{ stock.symbol }})</h2>
-
-            <!-- Chart Container -->
-            <div id="chart"></div>
-
-            <!-- Load Plotly.js -->
-            <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-
-            <script>
-                var stockData = {{ prices_json | safe }};  // Load stock price data from Django
-                console.log(stockData);
-                var dates = stockData.map(d => d.date);
-                var closingPrices = stockData.map(d => d.close_price);
-
-                var trace = {
-                    x: dates,
-                    y: closingPrices,
-                    mode: 'lines',
-                    type: 'scatter',
-                    name: 'Closing Price'
-                };
-
-                var layout = {
-                    title: '{{ stock.symbol }} Closing Price',
-                    xaxis: { title: 'Date' },
-                    yaxis: { title: 'Price (USD)' }
-                };
-
-                Plotly.newPlot('chart', [trace], layout);
-            </script>
-        </section>
-    </div>
-
-    <section class="stock__value--tracker">
-        <table border="1">
-            <tr>
-                <th>Date</th>
-                <th>Open</th>
-                <th>Close</th>
-                <th>High</th>
-                <th>Low</th>
-                <th>Volume</th>
-            </tr>
-            {% for price in prices %}
-
-            <tr>
-
-                <td>{{ price.date }}</td>
-                <td>{{ price.open_price }}</td>
-                <td>{{ price.close_price }}</td>
-                <td>{{ price.high }}</td>
-                <td>{{ price.low }}</td>
-                <td>{{ price.volume }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+{% block content %}
+<h1>{{ stock.name }} ({{ stock.symbol }})</h1>
+<p>Average Close Price: {{ avg_close_price }}</p>
+<!-- Add the Delete Button -->
+<form action="{% url 'delete_stock' symbol=stock.symbol %}" method="POST">
+    {% csrf_token %}
+    <button type="submit">Delete {{ stock.name }}</button>
+</form>
+<div class="stock__header">
+    <section class="stock__value--list">
+        <li>Shares: {{ portfolio_entry.shares }}</li>
+        <li>Price: ${{ portfolio_entry.price }}</li>
+        <li>Average Cost: ${{ portfolio_entry.avg_cost }}</li>
+        <li>Total Return: ${{ portfolio_entry.total_return }}</li>
+        <li>Equity: ${{ portfolio_entry.equity }}</li>
+        <li>Gain Since Invested: ${{ portfolio_entry.gain_since_invested }}</li>
+        <li>Allocation: {{ portfolio_entry.allocation }}%</li>
     </section>
-
     <a href="{% url 'stock_list' %}">Back to stock list</a>
-</body>
+    <section class="stock__value--chart">
+        <h2>{{ stock.name }} ({{ stock.symbol }})</h2>
 
-</html>
+        <!-- Chart Container -->
+        <div id="chart"></div>
+        <!-- RSI Chart -->
+        <div id="rsi_chart" style="height:300px;"></div>
+        <!-- Candlestick Chart Container -->
+        <div id="candlestick_chart"></div>
+        <!-- Load Plotly.js -->
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+        <script>
+            var stockData = {{ prices_json | safe }};  // Load stock price data from Django
+            console.log(stockData);
+            var dates = stockData.map(d => d.date);
+            var closingPrices = stockData.map(d => d.close_price);
+
+            var trace = {
+                x: dates,
+                y: closingPrices,
+                mode: 'lines',
+                type: 'scatter',
+                name: 'Closing Price'
+            };
+
+            var layout = {
+                title: '{{ stock.symbol }} Closing Price',
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'Price (USD)' }
+            };
+
+            Plotly.newPlot('chart', [trace], layout);
+        </script>
+        <!-- RSI Chart -->
+        <script>
+            var stockData = {{ technical_data| safe }}; // Load JSON data from Django
+
+            // 🟢 Candlestick Chart with SMA & EMA
+            var traceCandlestick = {
+                x: stockData.map(d => d.date),
+                open: stockData.map(d => d.open_price),
+                high: stockData.map(d => d.high),
+                low: stockData.map(d => d.low),
+                close: stockData.map(d => d.close_price),
+                type: 'candlestick',
+                name: '{{ stock.symbol }} Candlestick',
+                increasing: { line: { color: 'green' } },
+                decreasing: { line: { color: 'red' } }
+            };
+
+            var traceSMA = {
+                x: stockData.map(d => d.date),
+                y: stockData.map(d => d.SMA_20),
+                mode: 'lines',
+                name: 'SMA 20',
+                line: { color: 'blue' }
+            };
+
+            var traceEMA = {
+                x: stockData.map(d => d.date),
+                y: stockData.map(d => d.EMA_10),
+                mode: 'lines',
+                name: 'EMA 10',
+                line: { color: 'orange' }
+            };
+
+            var layoutCandlestick = {
+                title: '{{ stock.symbol }} Candlestick Chart with SMA & EMA',
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'Price (USD)' }
+            };
+
+            Plotly.newPlot('candlestick_chart', [traceCandlestick, traceSMA, traceEMA], layoutCandlestick);
+
+            // 🔵 RSI Chart
+            var traceRSI = {
+                x: stockData.map(d => d.date),
+                y: stockData.map(d => d.RSI_14),
+                mode: 'lines',
+                name: 'RSI 14',
+                line: { color: 'purple' }
+            };
+
+            var layoutRSI = {
+                title: '{{ stock.symbol }} Relative Strength Index (RSI)',
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'RSI Value', range: [0, 100] },
+                shapes: [
+                    {
+                        type: 'line', x0: stockData[0].date, x1: stockData[stockData.length - 1].date, y0: 70, y1: 70, line: {
+                            color:
+                                'red', dash: 'dash'
+                        }
+                    },
+                    {
+                        type: 'line', x0: stockData[0].date, x1: stockData[stockData.length - 1].date, y0: 30, y1: 30, line: {
+                            color:
+                                'green', dash: 'dash'
+                        }
+                    }
+                ]
+            };
+
+            Plotly.newPlot('rsi_chart', [traceRSI], layoutRSI);
+        </script>
+        <!-- Candlestic Chart -->
+        <script>
+            var stockData = {{ candlestick_data | safe }};  // Load JSON data from Django
+
+            var trace = {
+                x: stockData.map(d => d.date),
+                open: stockData.map(d => d.open_price),
+                high: stockData.map(d => d.high),
+                low: stockData.map(d => d.low),
+                close: stockData.map(d => d.close_price),
+                type: 'candlestick',
+                name: '{{ stock.symbol }} Candlestick',
+                increasing: { line: { color: 'green' } },  // Green for bullish candles
+                decreasing: { line: { color: 'red' } }  // Red for bearish candles
+            };
+
+            var layout = {
+                title: '{{ stock.symbol }} Candlestick Chart',
+                xaxis: { title: 'Date' },
+                yaxis: { title: 'Price (USD)' }
+            };
+
+            Plotly.newPlot('candlestick_chart', [trace], layout);
+        </script>
+    </section>
+</div>
+
+<section class="stock__value--tracker">
+    <table border="1">
+        <tr>
+            <th>Date</th>
+            <th>Open</th>
+            <th>Close</th>
+            <th>High</th>
+            <th>Low</th>
+            <th>Volume</th>
+        </tr>
+        {% for price in prices %}
+
+        <tr>
+
+            <td>{{ price.date }}</td>
+            <td>{{ price.open_price }}</td>
+            <td>{{ price.close_price }}</td>
+            <td>{{ price.high }}</td>
+            <td>{{ price.low }}</td>
+            <td>{{ price.volume }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</section>
+
+<a href="{% url 'stock_list' %}">Back to stock list</a>
+{% endblock %}
