@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- stocks/templates/stocks/confirm_delete.html -->
+<h2>Are you sure you want to delete {{ stock.name }} ({{ stock.symbol }})?</h2>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Yes, delete</button>
+    <a href="{% url 'stock_list' %}">Cancel</a>
+</form>
+
+{% endblock %}

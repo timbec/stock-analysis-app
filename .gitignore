@@ -21,4 +21,8 @@ media/
 
 # Virtual environment
 venv/
+<<<<<<< HEAD
 env/
+=======
+env/
+>>>>>>> develop

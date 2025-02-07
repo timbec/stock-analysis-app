@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Available Stocks</h1>
+<ul>
+    {% for symbol in symbols %}
+
+    <li>
+        <h3>{{ symbol.name }}</h3>
+        <a href="{% url 'stock_detail' symbol=symbol.symbol %}">{{ symbol.symbol }}</a>
+
+    </li>
+    {% empty %}
+    <li>No stocks available.</li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'add_stock' %}">Add New Stock</a>
+<a href="{% url 'upload_csv' %}">Upload CSV</a>
+
+{% endblock %}
