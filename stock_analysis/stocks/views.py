@@ -14,7 +14,8 @@ from .utils import fetch_stock_data, fetch_multiple_stock_data
 import csv
 
 
-
+def home(request):
+    return render(request, 'home.html')
 
 def stock_list(request):
     symbols = StockSymbol.objects.prefetch_related('prices').all()
