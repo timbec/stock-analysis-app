@@ -1,7 +1,7 @@
 # stocks/views.py
 import pandas as pd
-import pandas_ta as ta
-from django.shortcuts import render, redirect, get_object_or_404
+# import pandas_ta as ta
+import talib
 from .forms import CSVUploadForm
 from .models import StockSymbol, StockPrice, PortfolioEntry
 from django.db.models import Avg
@@ -10,12 +10,11 @@ from django.shortcuts import render, get_object_or_404
 
 from django.core.serializers.json import DjangoJSONEncoder
 import json
+import csv
 
 from .models import StockSymbol, StockPrice
 from .forms import StockSymbolForm
 from .utils import fetch_stock_data, fetch_multiple_stock_data
-
-import csv
 
 
 def home(request):
@@ -37,24 +36,22 @@ def stock_detail(request, symbol):
     portfolio_entry = PortfolioEntry.objects.filter(stock=stock).first()
 
     # Query stock prices for table rendering
-    prices = stock.prices.order_by('-date')  # Keep this for templates
-
+    prices = stock.prices.order_by('-date').values('date', 'close_price', 'open_price', 'high', 'low', 'volume')
+    print(prices)
     # Convert to DataFrame for TA calculations
     df = pd.DataFrame(list(prices))
-
+    print(df)
         # Ensure data exists before calculations
     if not df.empty:
         df['date'] = pd.to_datetime(df['date'])  # Convert date to datetime
 
-        # 🟢 Add Moving Averages (SMA & EMA)
-        df['SMA_20'] = ta.sma(df['close_price'], length=20)  # 20-day SMA
-        df['EMA_10'] = ta.ema(df['close_price'], length=10)  # 10-day EMA
+        # Compute Technical Indicators
+        df['SMA_20'] = talib.SMA(df['close_price'], timeperiod=20)
+        df['EMA_10'] = talib.EMA(df['close_price'], timeperiod=10)
+        df['RSI_14'] = talib.RSI(df['close_price'], timeperiod=14)
 
-        # 🔵 Add RSI (Relative Strength Index)
-        df['RSI_14'] = ta.rsi(df['close_price'], length=14)  # 14-day RSI
-
-    # Convert data to JSON format for Plotly.js
-    technical_data = df.to_json(orient='records', date_format='iso')
+        # Convert data to JSON format for Plotly.js
+        technical_data = df.to_json(orient='records', date_format='iso')
 
     # Query stock prices for candlestick chart
     oldest_prices = stock.prices.order_by('date').values('date', 'open_price', 'high', 'low', 'close_price')  # Keep this for templates
